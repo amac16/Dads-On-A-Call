@@ -18,7 +18,7 @@ $executable = Join-Path $output 'DadsOnACall.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Application build failed.' }
 Write-Output "Built $executable"
 if ($Test) {
-    $testExecutable = Join-Path $output 'DadsOnCall.Tests.exe'
+    $testExecutable = Join-Path $output 'DadsOnACall.Tests.exe'
     $testSource = Join-Path $PSScriptRoot 'tests\Tests.cs'
     & $compiler /nologo /target:exe /optimize+ /warn:4 /main:DadsOnCall.Tests "/win32manifest:$manifest" "/out:$testExecutable" $references $sources $testSource
     if ($LASTEXITCODE -ne 0) { throw 'Test build failed.' }
