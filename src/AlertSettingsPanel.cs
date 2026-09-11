@@ -16,6 +16,8 @@ namespace DadsOnCall
         private readonly CheckBox timerEnabled;
         private readonly ComboBox hoursInput;
         private readonly ComboBox minutesInput;
+        private readonly CheckBox blinkEnabled;
+        private readonly ComboBox blinkRate;
         private readonly Panel preview;
         private readonly IndicatorContent previewContent = new IndicatorContent();
 
@@ -29,7 +31,7 @@ namespace DadsOnCall
             string prefix = offCall ? "Off Call " : "On Call ";
             var layout = new TableLayoutPanel
             {
-                Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 9
+                Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 11
             };
             layout.SuspendLayout();
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
@@ -87,12 +89,36 @@ namespace DadsOnCall
                 UpdatePreview();
             };
 
+            blinkEnabled = new CheckBox
+            {
+                Text = "Blink this indicator", AccessibleName = prefix + "blink enabled",
+                AutoSize = true, Checked = offCall ? settings.OffBlinkEnabled : settings.OnBlinkEnabled,
+                Margin = new Padding(0, 5, 0, 0)
+            };
+            layout.Controls.Add(blinkEnabled, 0, 7);
+            layout.SetColumnSpan(blinkEnabled, 2);
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
+            blinkRate = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Top,
+                AccessibleName = prefix + "blink rate"
+            };
+            blinkRate.Items.AddRange(AppSettings.BlinkRateChoices);
+            blinkRate.SelectedItem = offCall ? settings.OffBlinkRate : settings.OnBlinkRate;
+            AddRow(layout, "Blink rate", blinkRate, prefix, 8);
+            blinkRate.Enabled = blinkEnabled.Checked;
+            blinkEnabled.CheckedChanged += delegate
+            {
+                blinkRate.Enabled = blinkEnabled.Checked;
+                UpdatePreview();
+            };
+
             var previewHint = new Label
             {
                 Text = "APPEARANCE PREVIEW  (scaled to fit)", AutoSize = true,
                 ForeColor = Color.FromArgb(90, 100, 115), Margin = new Padding(0, 5, 0, 0)
             };
-            layout.Controls.Add(previewHint, 0, 7);
+            layout.Controls.Add(previewHint, 0, 9);
             layout.SetColumnSpan(previewHint, 2);
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 26));
             preview = new Panel
@@ -101,13 +127,14 @@ namespace DadsOnCall
                 AccessibleName = prefix + "preview"
             };
             preview.Paint += PaintPreview;
-            layout.Controls.Add(preview, 0, 8);
+            layout.Controls.Add(preview, 0, 10);
             layout.SetColumnSpan(preview, 2);
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             fontSizeInput.ValueChanged += delegate { UpdatePreview(); };
             fontInput.SelectedIndexChanged += delegate { UpdatePreview(); };
             hoursInput.SelectedIndexChanged += delegate { UpdatePreview(); };
             minutesInput.SelectedIndexChanged += delegate { UpdatePreview(); };
+            blinkRate.SelectedIndexChanged += delegate { UpdatePreview(); };
             messageInput.TextChanged += delegate { UpdatePreview(); };
             UpdatePreview();
             Controls.Add(layout);
@@ -159,6 +186,8 @@ namespace DadsOnCall
                 settings.OffTimerEnabled = timerEnabled.Checked;
                 settings.OffTimerHours = (int)hoursInput.SelectedItem;
                 settings.OffTimerMinutes = (int)minutesInput.SelectedItem;
+                settings.OffBlinkEnabled = blinkEnabled.Checked;
+                settings.OffBlinkRate = (string)blinkRate.SelectedItem;
             }
             else
             {
@@ -170,6 +199,8 @@ namespace DadsOnCall
                 settings.OnTimerEnabled = timerEnabled.Checked;
                 settings.OnTimerHours = (int)hoursInput.SelectedItem;
                 settings.OnTimerMinutes = (int)minutesInput.SelectedItem;
+                settings.OnBlinkEnabled = blinkEnabled.Checked;
+                settings.OnBlinkRate = (string)blinkRate.SelectedItem;
             }
         }
 

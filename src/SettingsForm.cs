@@ -34,7 +34,7 @@ namespace DadsOnCall
             Font = uiFont;
             BackColor = Color.FromArgb(247, 248, 250);
             ForeColor = Color.FromArgb(30, 38, 50);
-            ClientSize = new Size(780, 646);
+            ClientSize = new Size(780, 746);
             AutoScroll = true;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -43,7 +43,7 @@ namespace DadsOnCall
 
             var layout = new TableLayoutPanel
             {
-                Size = new Size(600, 646), MinimumSize = new Size(600, 646),
+                Size = new Size(600, 746), MinimumSize = new Size(600, 746),
                 Padding = new Padding(24), ColumnCount = 2, RowCount = 6
             };
             layout.SuspendLayout();
@@ -157,13 +157,13 @@ namespace DadsOnCall
 
             widthInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); };
             heightInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); };
-            var canvas = new Panel { Size = new Size(780, 646) };
+            var canvas = new Panel { Size = new Size(780, 746) };
             canvas.SuspendLayout();
             var versionLabel = new Label
             {
                 Text = "v" + AppInfo.Version, AutoSize = false, Size = new Size(180, 20),
                 TextAlign = ContentAlignment.MiddleRight, Font = new Font("Segoe UI", 8),
-                ForeColor = Color.FromArgb(110, 118, 130), Location = new Point(576, 620),
+                ForeColor = Color.FromArgb(110, 118, 130), Location = new Point(576, 720),
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right
             };
             canvas.Controls.Add(layout);

@@ -34,8 +34,14 @@ namespace DadsOnCall
         public bool OffTimerEnabled { get; set; }
         public int OffTimerHours { get; set; }
         public int OffTimerMinutes { get; set; }
+        public bool OnBlinkEnabled { get; set; }
+        public string OnBlinkRate { get; set; }
+        public bool OffBlinkEnabled { get; set; }
+        public string OffBlinkRate { get; set; }
 
         internal static readonly int[] MinuteChoices = { 0, 1, 2, 3, 4, 5, 10, 15, 30, 45 };
+        internal static readonly string[] BlinkRateChoices =
+            { "Slow", "Very Slow", "Just Above Average", "Seriously", "Attention Seeking" };
 
         public AppSettings()
         {
@@ -54,6 +60,8 @@ namespace DadsOnCall
             OffFontSize = 24;
             OnTimerMinutes = 5;
             OffTimerMinutes = 5;
+            OnBlinkRate = BlinkRateChoices[0];
+            OffBlinkRate = BlinkRateChoices[0];
         }
 
         public AppSettings Copy()
@@ -84,6 +92,8 @@ namespace DadsOnCall
                 (OnTimerEnabled && OnTimerHours == 0 && OnTimerMinutes == 0)) OnTimerMinutes = 5;
             if (Array.IndexOf(MinuteChoices, OffTimerMinutes) < 0 ||
                 (OffTimerEnabled && OffTimerHours == 0 && OffTimerMinutes == 0)) OffTimerMinutes = 5;
+            OnBlinkRate = NormalizeBlinkRate(OnBlinkRate);
+            OffBlinkRate = NormalizeBlinkRate(OffBlinkRate);
         }
 
         private static string NormalizeColor(string value, string fallback)
@@ -124,6 +134,29 @@ namespace DadsOnCall
             if (mode == IndicatorMode.OffCall && OffTimerEnabled)
                 return TimeSpan.FromHours(OffTimerHours) + TimeSpan.FromMinutes(OffTimerMinutes);
             return null;
+        }
+
+        internal int BlinkInterval(IndicatorMode mode)
+        {
+            string rate = mode == IndicatorMode.OffCall ? OffBlinkRate : OnBlinkRate;
+            switch (rate)
+            {
+                case "Very Slow": return 5000;
+                case "Just Above Average": return 1000;
+                case "Seriously": return 500;
+                case "Attention Seeking": return 100;
+                default: return 2000;
+            }
+        }
+
+        internal bool BlinkEnabled(IndicatorMode mode)
+        {
+            return mode == IndicatorMode.OffCall ? OffBlinkEnabled : OnBlinkEnabled;
+        }
+
+        private static string NormalizeBlinkRate(string value)
+        {
+            return Array.IndexOf(BlinkRateChoices, value) >= 0 ? value : BlinkRateChoices[0];
         }
 
         internal void ValidateTimers()

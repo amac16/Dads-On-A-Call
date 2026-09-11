@@ -33,6 +33,7 @@ namespace DadsOnCall
                 Application.SetCompatibleTextRenderingDefault(false);
                 Directory.CreateDirectory(directory);
                 TestUpdates();
+                TestBlinking();
                 TestSettings(directory);
                 TestBounds();
                 TestMessagesAndPositions(args.Length > 0 ? args[0] : null);
@@ -66,6 +67,24 @@ namespace DadsOnCall
                 "A newer remote version reports an update");
         }
 
+        private static void TestBlinking()
+        {
+            var settings = new AppSettings();
+            Check(!settings.OnBlinkEnabled && !settings.OffBlinkEnabled &&
+                settings.OnBlinkRate == "Slow" && settings.OffBlinkRate == "Slow",
+                "Blinking defaults disabled with the Slow rate");
+            settings.OnBlinkRate = "Slow";
+            Check(settings.BlinkInterval(IndicatorMode.OnCall) == 2000, "Slow blinking uses two seconds");
+            settings.OnBlinkRate = "Very Slow";
+            Check(settings.BlinkInterval(IndicatorMode.OnCall) == 5000, "Very Slow blinking uses five seconds");
+            settings.OnBlinkRate = "Just Above Average";
+            Check(settings.BlinkInterval(IndicatorMode.OnCall) == 1000, "Just Above Average blinking uses one second");
+            settings.OnBlinkRate = "Seriously";
+            Check(settings.BlinkInterval(IndicatorMode.OnCall) == 500, "Seriously blinking uses half a second");
+            settings.OnBlinkRate = "Attention Seeking";
+            Check(settings.BlinkInterval(IndicatorMode.OnCall) == 100, "Attention Seeking blinking uses one tenth of a second");
+        }
+
         private static void TestSettings(string directory)
         {
             string path = Path.Combine(directory, "settings.xml");
@@ -75,7 +94,8 @@ namespace DadsOnCall
             Check(settings.OnMessage == IndicatorForm.Message && settings.OffMessage == IndicatorForm.OffMessage &&
                 settings.Position == ScreenPosition.TopRight, "Messages and position retain original defaults");
             Check(settings.OffBackgroundColor == "#187A45" && settings.OffFontColor == "#FFFFFF" &&
-                !settings.OnTimerEnabled && !settings.OffTimerEnabled, "Off Call defaults green and both timers default disabled");
+                !settings.OnTimerEnabled && !settings.OffTimerEnabled &&
+                !settings.OnBlinkEnabled && !settings.OffBlinkEnabled, "Off Call defaults green and timers and blinking default disabled");
             settings.Width = 580;
             settings.Height = 180;
             settings.FontFamily = "Arial";
@@ -95,6 +115,10 @@ namespace DadsOnCall
             settings.OffTimerEnabled = true;
             settings.OffTimerHours = 0;
             settings.OffTimerMinutes = 2;
+            settings.OnBlinkEnabled = true;
+            settings.OnBlinkRate = "Attention Seeking";
+            settings.OffBlinkEnabled = true;
+            settings.OffBlinkRate = "Very Slow";
             SettingsStore.Save(path, settings);
             var loaded = SettingsStore.Load(path, out recovered);
             Check(!recovered && loaded.Width == 580 && loaded.Height == 180, "Dimensions persist");
@@ -106,6 +130,8 @@ namespace DadsOnCall
                 loaded.OffFontFamily == "Consolas" && loaded.OffFontSize == 20, "Off Call appearance persists independently");
             Check(loaded.OnTimerEnabled && loaded.OnTimerHours == 1 && loaded.OnTimerMinutes == 30 &&
                 loaded.OffTimerEnabled && loaded.OffTimerHours == 0 && loaded.OffTimerMinutes == 2, "Both timer configurations persist independently");
+            Check(loaded.OnBlinkEnabled && loaded.OnBlinkRate == "Attention Seeking" &&
+                loaded.OffBlinkEnabled && loaded.OffBlinkRate == "Very Slow", "Blinking settings persist independently");
             settings.Width = 600;
             SettingsStore.Save(path, settings);
             Check(SettingsStore.Load(path, out recovered).Width == 600, "Existing settings are atomically replaced");

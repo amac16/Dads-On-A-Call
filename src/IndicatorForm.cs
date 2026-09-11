@@ -14,6 +14,9 @@ namespace DadsOnCall
         private AppSettings settings;
         private readonly IndicatorContent content;
         private readonly Timer positionTimer;
+        private readonly Timer blinkTimer;
+        private IndicatorMode mode;
+        private bool blinkVisible;
         internal event Action<int> AddTimeRequested;
         internal event Action EndRequested;
 
@@ -39,16 +42,23 @@ namespace DadsOnCall
                 if (handler != null) handler();
             };
             Controls.Add(content);
-            ApplySettings(initialSettings);
             // Also catches taskbar moves and monitor disconnects while the indicator is visible.
             positionTimer = new Timer { Interval = 1000 };
             positionTimer.Tick += delegate { Reposition(); };
+            blinkTimer = new Timer();
+            blinkTimer.Tick += delegate
+            {
+                blinkVisible = !blinkVisible;
+                Opacity = blinkVisible ? 1.0 : 0.0;
+            };
             VisibleChanged += delegate
             {
                 positionTimer.Enabled = Visible;
+                UpdateBlinkTimer();
                 // WinForms' TopMost property can activate a newly shown form on .NET Framework.
                 if (Visible) SetWindowPos(Handle, new IntPtr(-1), 0, 0, 0, 0, 0x0013);
             };
+            ApplySettings(initialSettings);
         }
 
         [DllImport("user32.dll")]
@@ -80,14 +90,28 @@ namespace DadsOnCall
         {
             settings = value.Copy();
             settings.Normalize();
+            this.mode = mode;
             bool offCall = mode == IndicatorMode.OffCall;
             Text = offCall ? settings.OffMessage : settings.OnMessage;
             AccessibleName = Text;
             BackColor = ColorTranslator.FromHtml(offCall ? settings.OffBackgroundColor : settings.BackgroundColor);
             ForeColor = ColorTranslator.FromHtml(offCall ? settings.OffFontColor : settings.FontColor);
             content.ApplySettings(settings, offCall);
+            UpdateBlinkTimer();
             Reposition();
             Invalidate();
+        }
+
+        private void UpdateBlinkTimer()
+        {
+            blinkTimer.Stop();
+            blinkVisible = true;
+            Opacity = 1.0;
+            if (settings != null && Visible && settings.BlinkEnabled(mode))
+            {
+                blinkTimer.Interval = settings.BlinkInterval(mode);
+                blinkTimer.Start();
+            }
         }
 
         internal static Rectangle DockBounds(Rectangle workArea, int width, int height, ScreenPosition position = ScreenPosition.TopRight)
@@ -124,6 +148,7 @@ namespace DadsOnCall
             if (disposing)
             {
                 if (positionTimer != null) positionTimer.Dispose();
+                if (blinkTimer != null) blinkTimer.Dispose();
             }
             base.Dispose(disposing);
         }
