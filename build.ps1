@@ -13,14 +13,16 @@ $sources = @('AppSettings.cs', 'IndicatorContent.cs', 'IndicatorForm.cs', 'Alert
 }
 $references = @('/r:System.dll', '/r:System.Core.dll', '/r:System.Drawing.dll', '/r:System.Windows.Forms.dll', '/r:System.Xml.dll')
 $manifest = Join-Path $PSScriptRoot 'src\app.manifest'
+$icon = Join-Path $PSScriptRoot 'src\DadsOnACall.ico'
+if (-not (Test-Path -LiteralPath $icon)) { throw 'Application icon not found.' }
 $executable = Join-Path $output 'DadsOnACall.exe'
-& $compiler /nologo /target:winexe /optimize+ /warn:4 "/win32manifest:$manifest" "/out:$executable" $references $sources
+& $compiler /nologo /target:winexe /optimize+ /warn:4 "/win32manifest:$manifest" "/win32icon:$icon" "/out:$executable" $references $sources
 if ($LASTEXITCODE -ne 0) { throw 'Application build failed.' }
 Write-Output "Built $executable"
 if ($Test) {
     $testExecutable = Join-Path $output 'DadsOnACall.Tests.exe'
     $testSource = Join-Path $PSScriptRoot 'tests\Tests.cs'
-    & $compiler /nologo /target:exe /optimize+ /warn:4 /main:DadsOnCall.Tests "/win32manifest:$manifest" "/out:$testExecutable" $references $sources $testSource
+    & $compiler /nologo /target:exe /optimize+ /warn:4 /main:DadsOnCall.Tests "/win32manifest:$manifest" "/win32icon:$icon" "/out:$testExecutable" $references $sources $testSource
     if ($LASTEXITCODE -ne 0) { throw 'Test build failed.' }
     & $testExecutable
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }

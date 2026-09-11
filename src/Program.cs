@@ -9,7 +9,7 @@ namespace DadsOnCall
 {
     internal static class AppInfo
     {
-        internal const string Version = "1.0.1";
+        internal const string Version = "1.0.2";
     }
 
     internal static class Program
