@@ -4,7 +4,7 @@ A small native Windows tray app that displays customizable On Call and Off Call 
 
 ## Run
 
-Double-click **Start Dad's On A Call.cmd**. It builds the app on the first run using the .NET Framework compiler included with Windows. You can also run **dist\DadsOnCall.exe** directly once built, or create a Windows shortcut to it.
+Double-click **Start Dad's On A Call.cmd**. It builds the app on the first run using the .NET Framework compiler included with Windows. You can also run **dist\DadsOnACall.exe** directly once built, or create a Windows shortcut to it.
 
 - The app starts with both indicators **hidden**.
 - **Left-click** the **D** tray icon to toggle **On Call**. If Off Call is showing, this replaces it with On Call.

@@ -45,13 +45,13 @@ namespace DadsOnCall
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            var heading = new Label { Text = "Signs of Dad.", Font = headingFont, AutoSize = true };
+            var heading = new Label { Text = "So, like, what's your sign?", Font = headingFont, AutoSize = true };
             layout.Controls.Add(heading, 0, 0);
             layout.SetColumnSpan(heading, 2);
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
             var hint = new Label
             {
-                Text = "Your words. Your corner. Your peace and quiet.\nChoose messages, a look, and a shared spot on screen.",
+                Text = "Change your sign settings below to let your family \\n know when you're too busy to chat.",
                 AutoSize = true, Dock = DockStyle.Fill
             };
             layout.Controls.Add(hint, 0, 1);

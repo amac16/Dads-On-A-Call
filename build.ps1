@@ -13,7 +13,7 @@ $sources = @('AppSettings.cs', 'IndicatorContent.cs', 'IndicatorForm.cs', 'Alert
 }
 $references = @('/r:System.dll', '/r:System.Core.dll', '/r:System.Drawing.dll', '/r:System.Windows.Forms.dll', '/r:System.Xml.dll')
 $manifest = Join-Path $PSScriptRoot 'src\app.manifest'
-$executable = Join-Path $output 'DadsOnCall.exe'
+$executable = Join-Path $output 'DadsOnACall.exe'
 & $compiler /nologo /target:winexe /optimize+ /warn:4 "/win32manifest:$manifest" "/out:$executable" $references $sources
 if ($LASTEXITCODE -ne 0) { throw 'Application build failed.' }
 Write-Output "Built $executable"
