@@ -15,6 +15,7 @@ namespace DadsOnCall
         private readonly IndicatorContent content;
         private readonly Timer positionTimer;
         internal event Action<int> AddTimeRequested;
+        internal event Action EndRequested;
 
         public IndicatorForm(AppSettings initialSettings)
         {
@@ -30,6 +31,12 @@ namespace DadsOnCall
             {
                 var handler = AddTimeRequested;
                 if (handler != null) handler(minutes);
+            };
+            content.ShowEndButton = true;
+            content.EndRequested += delegate
+            {
+                var handler = EndRequested;
+                if (handler != null) handler();
             };
             Controls.Add(content);
             ApplySettings(initialSettings);

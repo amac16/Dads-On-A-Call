@@ -25,7 +25,7 @@ namespace DadsOnCall
             SuspendLayout();
             save = onSave;
             previewPosition = onPreviewPosition;
-            Text = "Dad's On A Call - Settings";
+            Text = "DadsOnACall - Settings";
             Font = uiFont;
             BackColor = Color.FromArgb(247, 248, 250);
             ForeColor = Color.FromArgb(30, 38, 50);
@@ -147,8 +147,16 @@ namespace DadsOnCall
             heightInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); };
             var canvas = new Panel { Size = new Size(780, 646) };
             canvas.SuspendLayout();
+            var versionLabel = new Label
+            {
+                Text = "v" + AppInfo.Version, AutoSize = false, Size = new Size(180, 20),
+                TextAlign = ContentAlignment.MiddleRight, Font = new Font("Segoe UI", 8),
+                ForeColor = Color.FromArgb(110, 118, 130), Location = new Point(576, 620),
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+            };
             canvas.Controls.Add(layout);
             canvas.Controls.Add(positionPanel);
+            canvas.Controls.Add(versionLabel);
             Controls.Add(canvas);
             AutoScaleDimensions = new SizeF(96, 96);
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -184,7 +192,7 @@ namespace DadsOnCall
             catch (Exception ex)
             {
                 MessageBox.Show(this, "Settings could not be fully saved.\n\n" + ex.Message,
-                    "Dad's On A Call", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             DialogResult = DialogResult.OK;

@@ -9,6 +9,7 @@ namespace DadsOnCall
     internal sealed class IndicatorContent : Control
     {
         private readonly Button[] addButtons;
+        private readonly Button endButton;
         private AppSettings settings;
         private bool offCall;
         private bool timed;
@@ -18,8 +19,19 @@ namespace DadsOnCall
         private Rectangle messageBounds;
         private Rectangle countdownBounds;
         private Rectangle addLabelBounds;
+        private Rectangle endButtonBounds;
         internal string CountdownText { get; private set; }
         internal event Action<int> AddTimeRequested;
+        internal event Action EndRequested;
+        internal bool ShowEndButton
+        {
+            get { return endButton.Visible; }
+            set
+            {
+                endButton.Visible = value;
+                LayoutContent();
+            }
+        }
 
         public IndicatorContent()
         {
@@ -48,6 +60,17 @@ namespace DadsOnCall
                 addButtons[i] = button;
                 Controls.Add(button);
             }
+            endButton = new NoFocusButton
+            {
+                Text = "End", FlatStyle = FlatStyle.Flat, AccessibleName = "End alert",
+                AccessibleDescription = "End this alert.", UseVisualStyleBackColor = false, Visible = false
+            };
+            endButton.Click += delegate
+            {
+                var handler = EndRequested;
+                if (handler != null) handler();
+            };
+            Controls.Add(endButton);
         }
 
         internal void ApplySettings(AppSettings value, bool isOffCall)
@@ -66,6 +89,11 @@ namespace DadsOnCall
                 button.FlatAppearance.MouseOverBackColor = Darken(BackColor, 0.74);
                 button.FlatAppearance.MouseDownBackColor = Darken(BackColor, 0.64);
             }
+            endButton.BackColor = Darken(BackColor, 0.84);
+            endButton.ForeColor = ForeColor;
+            endButton.FlatAppearance.BorderColor = Darken(BackColor, 0.70);
+            endButton.FlatAppearance.MouseOverBackColor = Darken(BackColor, 0.74);
+            endButton.FlatAppearance.MouseDownBackColor = Darken(BackColor, 0.64);
             LayoutContent();
         }
 
@@ -123,6 +151,7 @@ namespace DadsOnCall
                 buttonFont = new Font("Segoe UI", Math.Max(1, 9 * scale), FontStyle.Regular);
             }
             foreach (var button in addButtons) button.Font = buttonFont;
+            endButton.Font = buttonFont;
             if (oldMessage != null) oldMessage.Dispose();
             if (oldCountdown != null) oldCountdown.Dispose();
             if (oldButton != null) oldButton.Dispose();
@@ -143,7 +172,22 @@ namespace DadsOnCall
                     addButtons[i].Bounds = new Rectangle(addLabelBounds.Right + gap + i * (buttonWidth + gap), rowTop, buttonWidth, buttonHeight);
                 int countdownHeight = Math.Max(1, countdownFont.Height + padding);
                 countdownBounds = new Rectangle(padding, rowTop - gap - countdownHeight, Width - 2 * padding, countdownHeight);
-                messageBounds = new Rectangle(padding, padding, Width - 2 * padding, Math.Max(1, countdownBounds.Top - 2 * padding));
+                int endTop = countdownBounds.Top - gap - buttonHeight;
+                endButtonBounds = new Rectangle((Width - buttonWidth) / 2, endTop, buttonWidth, buttonHeight);
+                endButton.Bounds = endButtonBounds;
+                messageBounds = new Rectangle(padding, padding, Width - 2 * padding,
+                    Math.Max(1, (endButton.Visible ? endButtonBounds.Top : countdownBounds.Top) - 2 * padding));
+            }
+            else if (endButton.Visible)
+            {
+                float unit = dpi;
+                int padding = Math.Max(2, (int)(6 * unit));
+                int buttonWidth = Math.Max(1, (int)(40 * unit));
+                int buttonHeight = Math.Max(1, (int)(24 * unit));
+                endButtonBounds = new Rectangle((Width - buttonWidth) / 2, Height - padding - buttonHeight, buttonWidth, buttonHeight);
+                endButton.Bounds = endButtonBounds;
+                messageBounds = new Rectangle(padding, padding, Width - 2 * padding,
+                    Math.Max(1, endButtonBounds.Top - 2 * padding));
             }
             Invalidate();
         }

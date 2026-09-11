@@ -7,6 +7,11 @@ using System.Windows.Forms;
 
 namespace DadsOnCall
 {
+    internal static class AppInfo
+    {
+        internal const string Version = "1.0.1";
+    }
+
     internal static class Program
     {
         [STAThread]
@@ -17,8 +22,8 @@ namespace DadsOnCall
             {
                 if (!created)
                 {
-                    MessageBox.Show("Dad's On A Call is already running. Look for the D icon in your system tray, including the hidden icons menu.",
-                        "Dad's On A Call", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("DadsOnACall is already running. Look for the D icon in your system tray, including the hidden icons menu.",
+                        "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
                 Application.EnableVisualStyles();
@@ -59,6 +64,7 @@ namespace DadsOnCall
             autoHideTimer.Tick += delegate { CheckAutoHide(); };
             indicator = new IndicatorForm(settings);
             indicator.AddTimeRequested += AddMinutes;
+            indicator.EndRequested += EndIndicator;
             idleIcon = CreateIcon(Color.FromArgb(76, 89, 108));
             offIcon = CreateIcon(Color.FromArgb(24, 122, 69));
             onIcon = CreateIcon(Color.FromArgb(180, 35, 53));
@@ -72,13 +78,13 @@ namespace DadsOnCall
             menu.Items.Add("Exit", null, delegate { ExitThread(); });
             tray = new NotifyIcon
             {
-                Icon = idleIcon, Text = "Dad's On A Call - Indicators hidden", ContextMenuStrip = menu, Visible = true
+                Icon = idleIcon, Text = "DadsOnACall - Indicators hidden", ContextMenuStrip = menu, Visible = true
             };
             tray.MouseClick += delegate(object sender, MouseEventArgs e)
             {
                 if (e.Button == MouseButtons.Left) Toggle(IndicatorMode.OnCall);
             };
-            tray.ShowBalloonTip(4000, "Dad's On A Call",
+            tray.ShowBalloonTip(4000, "DadsOnACall",
                 recovered ? "Saved settings could not be read. Defaults are in use. Right-click the tray icon to configure."
                     : "Ready. Left-click for On Call. Right-click for Off Call or settings.",
                 recovered ? ToolTipIcon.Warning : ToolTipIcon.Info);
@@ -143,6 +149,11 @@ namespace DadsOnCall
             CheckAutoHide();
         }
 
+        private void EndIndicator()
+        {
+            if (Mode != IndicatorMode.Hidden) SetMode(IndicatorMode.Hidden);
+        }
+
         internal void ApplySettings(AppSettings updated)
         {
             var previousDuration = settings.AutoHideDuration(Mode);
@@ -159,7 +170,7 @@ namespace DadsOnCall
         private void UpdateTrayText()
         {
             string text = Mode == IndicatorMode.OnCall ? settings.OnMessage : Mode == IndicatorMode.OffCall
-                ? settings.OffMessage : "Dad's On A Call - Indicators hidden";
+                ? settings.OffMessage : "DadsOnACall - Indicators hidden";
             // NotifyIcon tooltips on .NET Framework are limited to 63 characters.
             tray.Text = text.Length > 63 ? AppSettings.TruncateText(text, 60) + "..." : text;
         }
@@ -182,7 +193,7 @@ namespace DadsOnCall
             catch (Exception ex)
             {
                 MessageBox.Show("Windows startup settings could not be read.\n\n" + ex.Message,
-                    "Dad's On A Call", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             settingsWindow = new SettingsForm(settings.Copy(), startWithWindows, delegate(AppSettings updated, bool enableStartup)
@@ -193,7 +204,7 @@ namespace DadsOnCall
                 catch (Exception ex)
                 {
                     MessageBox.Show("Your message settings were saved, but Windows startup could not be updated.\n\n" + ex.Message,
-                        "Dad's On A Call", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }, PreviewPosition);
             settingsWindow.Icon = idleIcon;
