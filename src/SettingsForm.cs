@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace DadsOnCall
@@ -16,15 +17,19 @@ namespace DadsOnCall
         private readonly Action<AppSettings, bool> save;
         private readonly PositionPicker positionPicker;
         private readonly Action<ScreenPosition?> previewPosition;
+        private readonly Action<string> installUpdate;
+        private Button updateButton;
+        private UpdateInfo availableUpdate;
         private readonly Font headingFont = new Font("Segoe UI", 18, FontStyle.Bold);
         private readonly Font uiFont = new Font("Segoe UI", 10);
 
         public SettingsForm(AppSettings settings, bool startWithWindows, Action<AppSettings, bool> onSave,
-            Action<ScreenPosition?> onPreviewPosition = null)
+            Action<ScreenPosition?> onPreviewPosition = null, Action<string> onInstallUpdate = null)
         {
             SuspendLayout();
             save = onSave;
             previewPosition = onPreviewPosition;
+            installUpdate = onInstallUpdate;
             Text = "DadsOnACall - Settings";
             Font = uiFont;
             BackColor = Color.FromArgb(247, 248, 250);
@@ -133,10 +138,17 @@ namespace DadsOnCall
             buttons.SuspendLayout();
             var saveButton = new Button { Text = "Save settings", AutoSize = true, Height = 34 };
             var cancelButton = new Button { Text = "Cancel", AutoSize = true, Height = 34, DialogResult = DialogResult.Cancel };
+            updateButton = new Button
+            {
+                Text = "Check for Updates", AutoSize = true, Height = 34,
+                Enabled = installUpdate != null, AccessibleName = "Check for Updates"
+            };
             saveButton.Click += SaveSettings;
             cancelButton.Click += delegate { Close(); };
+            updateButton.Click += CheckForUpdates;
             buttons.Controls.Add(saveButton);
             buttons.Controls.Add(cancelButton);
+            buttons.Controls.Add(updateButton);
             layout.Controls.Add(buttons, 0, 5);
             layout.SetColumnSpan(buttons, 2);
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
@@ -197,6 +209,68 @@ namespace DadsOnCall
             }
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void CheckForUpdates(object sender, EventArgs e)
+        {
+            if (availableUpdate != null)
+            {
+                DownloadUpdate();
+                return;
+            }
+            SetUpdateButton("Checking...", false);
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try
+                {
+                    var update = UpdateService.CheckForUpdate();
+                    BeginInvoke((Action)delegate
+                    {
+                        availableUpdate = update;
+                        SetUpdateButton(update == null ? "Check for Updates" : "Update Available", true);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    BeginInvoke((Action)delegate
+                    {
+                        SetUpdateButton("Check for Updates", true);
+                        MessageBox.Show(this, "The update check failed.\n\n" + ex.Message,
+                            "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    });
+                }
+            });
+        }
+
+        private void DownloadUpdate()
+        {
+            SetUpdateButton("Downloading...", false);
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try
+                {
+                    string downloadedPath = UpdateService.DownloadUpdate();
+                    BeginInvoke((Action)delegate
+                    {
+                        if (installUpdate != null) installUpdate(downloadedPath);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    BeginInvoke((Action)delegate
+                    {
+                        SetUpdateButton("Update Available", true);
+                        MessageBox.Show(this, "The update download failed.\n\n" + ex.Message,
+                            "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    });
+                }
+            });
+        }
+
+        private void SetUpdateButton(string text, bool enabled)
+        {
+            updateButton.Text = text;
+            updateButton.Enabled = enabled;
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

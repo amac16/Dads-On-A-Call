@@ -8,7 +8,7 @@ if (-not (Test-Path -LiteralPath $compiler)) { throw '.NET Framework 4.x is requ
 if (-not (Test-Path -LiteralPath $PSScriptRoot)) { throw 'Project directory not found.' }
 $output = Join-Path $PSScriptRoot 'dist'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
-$sources = @('AppSettings.cs', 'IndicatorContent.cs', 'IndicatorForm.cs', 'AlertSettingsPanel.cs', 'PositionPicker.cs', 'SettingsForm.cs', 'StartupRegistration.cs', 'Program.cs') | ForEach-Object {
+$sources = @('AppSettings.cs', 'IndicatorContent.cs', 'IndicatorForm.cs', 'AlertSettingsPanel.cs', 'PositionPicker.cs', 'SettingsForm.cs', 'StartupRegistration.cs', 'UpdateService.cs', 'Program.cs') | ForEach-Object {
     Join-Path $PSScriptRoot "src\$_"
 }
 $references = @('/r:System.dll', '/r:System.Core.dll', '/r:System.Drawing.dll', '/r:System.Windows.Forms.dll', '/r:System.Xml.dll')

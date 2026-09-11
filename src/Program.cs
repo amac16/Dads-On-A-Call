@@ -206,7 +206,11 @@ namespace DadsOnCall
                     MessageBox.Show("Your message settings were saved, but Windows startup could not be updated.\n\n" + ex.Message,
                         "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-            }, PreviewPosition);
+            }, PreviewPosition, delegate(string downloadedPath)
+            {
+                UpdateService.LaunchReplacement(downloadedPath, Application.ExecutablePath);
+                ExitThread();
+            });
             settingsWindow.Icon = idleIcon;
             settingsWindow.FormClosed += delegate { settingsWindow = null; };
             settingsWindow.Show();
