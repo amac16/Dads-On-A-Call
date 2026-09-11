@@ -39,7 +39,17 @@ namespace DadsOnCall
             Version version;
             if (!Version.TryParse(versionText, out version))
                 throw new InvalidDataException("The remote manifest has an invalid assembly version.");
-            return version > new Version(AppInfo.Version) ? new UpdateInfo(version, versionText) : null;
+            return IsNewerVersion(versionText, AppInfo.Version) ? new UpdateInfo(version, versionText) : null;
+        }
+
+        internal static bool IsNewerVersion(string remoteVersionText, string currentVersionText)
+        {
+            Version remoteVersion;
+            Version currentVersion;
+            if (!Version.TryParse(remoteVersionText, out remoteVersion) ||
+                !Version.TryParse(currentVersionText, out currentVersion))
+                throw new ArgumentException("Version values must be valid.");
+            return NormalizeVersion(remoteVersion).CompareTo(NormalizeVersion(currentVersion)) > 0;
         }
 
         internal static string DownloadUpdate()
@@ -113,6 +123,11 @@ namespace DadsOnCall
             var manager = new XmlNamespaceManager(nameTable);
             manager.AddNamespace("asm", ManifestNamespace);
             return manager;
+        }
+
+        private static Version NormalizeVersion(Version version)
+        {
+            return new Version(version.Major, version.Minor, Math.Max(0, version.Build), Math.Max(0, version.Revision));
         }
 
         private static void TryDelete(string path)

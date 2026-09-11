@@ -32,6 +32,7 @@ namespace DadsOnCall
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Directory.CreateDirectory(directory);
+                TestUpdates();
                 TestSettings(directory);
                 TestBounds();
                 TestMessagesAndPositions(args.Length > 0 ? args[0] : null);
@@ -55,6 +56,14 @@ namespace DadsOnCall
             if (!condition) throw new Exception("FAIL: " + description);
             assertions++;
             Console.WriteLine("PASS: " + description);
+        }
+
+        private static void TestUpdates()
+        {
+            Check(!UpdateService.IsNewerVersion("1.0.1.0", "1.0.1"),
+                "Equal three-part and four-part versions do not report an update");
+            Check(UpdateService.IsNewerVersion("1.0.2.0", "1.0.1"),
+                "A newer remote version reports an update");
         }
 
         private static void TestSettings(string directory)
