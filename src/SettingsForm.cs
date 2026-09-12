@@ -18,18 +18,24 @@ namespace DadsOnCall
         private readonly PositionPicker positionPicker;
         private readonly Action<ScreenPosition?> previewPosition;
         private readonly Action<string> installUpdate;
+        private readonly Action<AppSettings> previewSettings;
+        private readonly AppSettings initialSettings;
+        private bool committed;
         private Button updateButton;
         private UpdateInfo availableUpdate;
         private readonly Font headingFont = new Font("Segoe UI", 18, FontStyle.Bold);
         private readonly Font uiFont = new Font("Segoe UI", 10);
 
         public SettingsForm(AppSettings settings, bool startWithWindows, Action<AppSettings, bool> onSave,
-            Action<ScreenPosition?> onPreviewPosition = null, Action<string> onInstallUpdate = null)
+            Action<ScreenPosition?> onPreviewPosition = null, Action<string> onInstallUpdate = null,
+            Action<AppSettings> onPreviewSettings = null)
         {
             SuspendLayout();
+            initialSettings = settings.Copy();
             save = onSave;
             previewPosition = onPreviewPosition;
             installUpdate = onInstallUpdate;
+            previewSettings = onPreviewSettings;
             Text = "DadsOnACall - Settings";
             Font = uiFont;
             BackColor = Color.FromArgb(247, 248, 250);
@@ -124,6 +130,8 @@ namespace DadsOnCall
                 positionLabel.Text = PositionPicker.PositionNames[(int)position];
                 if (previewPosition != null) previewPosition(position);
             };
+            onPanel.SettingsChanged += PreviewSettings;
+            offPanel.SettingsChanged += PreviewSettings;
 
             startupInput = new CheckBox
             {
@@ -207,8 +215,22 @@ namespace DadsOnCall
                     "DadsOnACall", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
+            committed = true;
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void PreviewSettings()
+        {
+            if (previewSettings == null) return;
+            var settings = new AppSettings
+            {
+                Width = (int)widthInput.Value, Height = (int)heightInput.Value,
+                Position = positionPicker.SelectedPosition
+            };
+            onPanel.WriteSettings(settings);
+            offPanel.WriteSettings(settings);
+            previewSettings(settings);
         }
 
         private void CheckForUpdates(object sender, EventArgs e)
@@ -277,6 +299,7 @@ namespace DadsOnCall
         {
             // Clearing the override restores the saved position on Cancel, or the newly saved one on Save.
             if (previewPosition != null) previewPosition(null);
+            if (!committed && previewSettings != null) previewSettings(initialSettings.Copy());
             base.OnFormClosed(e);
         }
 

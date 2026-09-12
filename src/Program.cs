@@ -9,7 +9,7 @@ namespace DadsOnCall
 {
     internal static class AppInfo
     {
-        internal const string Version = "1.0.4";
+        internal const string Version = "1.0.5";
     }
 
     internal static class Program
@@ -211,10 +211,15 @@ namespace DadsOnCall
             {
                 UpdateService.LaunchReplacement(downloadedPath, Application.ExecutablePath);
                 ExitThread();
-            });
+            }, PreviewSettings);
             settingsWindow.Icon = idleIcon;
             settingsWindow.FormClosed += delegate { settingsWindow = null; };
             settingsWindow.Show();
+        }
+
+        private void PreviewSettings(AppSettings updated)
+        {
+            ApplySettings(updated);
         }
 
         [DllImport("user32.dll")]

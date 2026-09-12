@@ -353,7 +353,8 @@ namespace DadsOnCall
                 now += 60000;
                 app.CheckAutoHide();
                 bool saveCalled = false;
-                using (var form = new SettingsForm(saved.Copy(), false, delegate { saveCalled = true; }, app.PreviewPosition))
+                using (var form = new SettingsForm(saved.Copy(), false, delegate { saveCalled = true; },
+                    app.PreviewPosition, null, delegate(AppSettings updated) { app.ApplySettings(updated); }))
                 {
                     form.Show();
                     Application.DoEvents();
@@ -362,8 +363,8 @@ namespace DadsOnCall
                     Find<TextBox>(form, "On Call Message").Text = "Dad's in a meeting";
                     var previewPanel = (AlertSettingsPanel)Find<Panel>(form, "On Call preview").Parent.Parent;
                     var preview = (IndicatorContent)typeof(AlertSettingsPanel).GetField("previewContent", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(previewPanel);
-                    Check(preview.Text == "Dad's in a meeting" && indicator.Text == IndicatorForm.Message,
-                        "Message edits update the settings preview without applying unsaved text");
+                    Check(preview.Text == "Dad's in a meeting" && indicator.Text == "Dad's in a meeting",
+                        "Message edits update the settings preview and live indicator immediately");
                     foreach (ScreenPosition position in Enum.GetValues(typeof(ScreenPosition)))
                     {
                         var button = Find<Button>(form, "Position " + PositionPicker.PositionNames[(int)position]);

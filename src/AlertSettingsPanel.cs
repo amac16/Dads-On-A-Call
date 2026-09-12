@@ -20,6 +20,7 @@ namespace DadsOnCall
         private readonly ComboBox blinkRate;
         private readonly Panel preview;
         private readonly IndicatorContent previewContent = new IndicatorContent();
+        internal event Action SettingsChanged;
 
         public AlertSettingsPanel(bool isOffCall, AppSettings settings, string[] fontNames, Func<Size> getSharedSize)
         {
@@ -211,6 +212,8 @@ namespace DadsOnCall
             previewContent.ApplySettings(settings, offCall);
             previewContent.UpdateRemaining(settings.AutoHideDuration(offCall ? IndicatorMode.OffCall : IndicatorMode.OnCall));
             preview.Invalidate();
+            var handler = SettingsChanged;
+            if (handler != null) handler();
         }
 
         private void PaintPreview(object sender, PaintEventArgs e)
