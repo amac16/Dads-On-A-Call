@@ -50,6 +50,8 @@ namespace DadsOnCall
             {
                 blinkVisible = !blinkVisible;
                 Opacity = blinkVisible ? 1.0 : 0.0;
+                blinkTimer.Interval = blinkVisible
+                    ? settings.BlinkInterval(mode) : settings.BlinkHiddenInterval(mode);
             };
             VisibleChanged += delegate
             {

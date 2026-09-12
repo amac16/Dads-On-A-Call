@@ -149,6 +149,11 @@ namespace DadsOnCall
             }
         }
 
+        internal int BlinkHiddenInterval(IndicatorMode mode)
+        {
+            return Math.Max(1, BlinkInterval(mode) / 2);
+        }
+
         internal bool BlinkEnabled(IndicatorMode mode)
         {
             return mode == IndicatorMode.OffCall ? OffBlinkEnabled : OnBlinkEnabled;

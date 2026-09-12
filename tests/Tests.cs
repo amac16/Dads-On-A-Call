@@ -83,6 +83,8 @@ namespace DadsOnCall
             Check(settings.BlinkInterval(IndicatorMode.OnCall) == 500, "Seriously blinking uses half a second");
             settings.OnBlinkRate = "Attention Seeking";
             Check(settings.BlinkInterval(IndicatorMode.OnCall) == 100, "Attention Seeking blinking uses one tenth of a second");
+            Check(settings.BlinkHiddenInterval(IndicatorMode.OnCall) == 50,
+                "Blinking hides for half the selected rate");
         }
 
         private static void TestSettings(string directory)
