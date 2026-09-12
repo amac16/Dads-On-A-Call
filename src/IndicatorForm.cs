@@ -15,10 +15,13 @@ namespace DadsOnCall
         private readonly IndicatorContent content;
         private readonly Timer positionTimer;
         private readonly Timer blinkTimer;
+        private readonly Timer hoverTimer;
         private IndicatorMode mode;
         private bool blinkVisible;
+        private bool hovering;
         internal event Action<int> AddTimeRequested;
         internal event Action EndRequested;
+        internal event Action SettingsRequested;
 
         public IndicatorForm(AppSettings initialSettings)
         {
@@ -41,6 +44,12 @@ namespace DadsOnCall
                 var handler = EndRequested;
                 if (handler != null) handler();
             };
+            content.ShowSettingsLink = true;
+            content.SettingsRequested += delegate
+            {
+                var handler = SettingsRequested;
+                if (handler != null) handler();
+            };
             Controls.Add(content);
             // Also catches taskbar moves and monitor disconnects while the indicator is visible.
             positionTimer = new Timer { Interval = 1000 };
@@ -53,9 +62,12 @@ namespace DadsOnCall
                 blinkTimer.Interval = blinkVisible
                     ? settings.BlinkInterval(mode) : settings.BlinkHiddenInterval(mode);
             };
+            hoverTimer = new Timer { Interval = 50 };
+            hoverTimer.Tick += delegate { UpdateHoverState(); };
             VisibleChanged += delegate
             {
                 positionTimer.Enabled = Visible;
+                hoverTimer.Enabled = Visible;
                 UpdateBlinkTimer();
                 // WinForms' TopMost property can activate a newly shown form on .NET Framework.
                 if (Visible) SetWindowPos(Handle, new IntPtr(-1), 0, 0, 0, 0, 0x0013);
@@ -109,11 +121,19 @@ namespace DadsOnCall
             blinkTimer.Stop();
             blinkVisible = true;
             Opacity = 1.0;
-            if (settings != null && Visible && settings.BlinkEnabled(mode))
+            if (settings != null && Visible && !hovering && settings.BlinkEnabled(mode))
             {
                 blinkTimer.Interval = settings.BlinkInterval(mode);
                 blinkTimer.Start();
             }
+        }
+
+        private void UpdateHoverState()
+        {
+            bool overWindow = Visible && Bounds.Contains(Cursor.Position);
+            if (overWindow == hovering) return;
+            hovering = overWindow;
+            UpdateBlinkTimer();
         }
 
         internal static Rectangle DockBounds(Rectangle workArea, int width, int height, ScreenPosition position = ScreenPosition.TopRight)
@@ -151,6 +171,7 @@ namespace DadsOnCall
             {
                 if (positionTimer != null) positionTimer.Dispose();
                 if (blinkTimer != null) blinkTimer.Dispose();
+                if (hoverTimer != null) hoverTimer.Dispose();
             }
             base.Dispose(disposing);
         }

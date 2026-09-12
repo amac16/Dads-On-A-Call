@@ -10,6 +10,7 @@ namespace DadsOnCall
     {
         private readonly Button[] addButtons;
         private readonly Button endButton;
+        private readonly LinkLabel settingsLink;
         private AppSettings settings;
         private bool offCall;
         private bool timed;
@@ -23,6 +24,16 @@ namespace DadsOnCall
         internal string CountdownText { get; private set; }
         internal event Action<int> AddTimeRequested;
         internal event Action EndRequested;
+        internal event Action SettingsRequested;
+        internal bool ShowSettingsLink
+        {
+            get { return settingsLink.Visible; }
+            set
+            {
+                settingsLink.Visible = value;
+                LayoutContent();
+            }
+        }
         internal bool ShowEndButton
         {
             get { return endButton.Visible; }
@@ -71,6 +82,18 @@ namespace DadsOnCall
                 if (handler != null) handler();
             };
             Controls.Add(endButton);
+            settingsLink = new LinkLabel
+            {
+                Text = "Settings", AutoSize = false, TextAlign = ContentAlignment.MiddleLeft,
+                FlatStyle = FlatStyle.System, TabStop = false, Visible = false,
+                AccessibleName = "Settings", AccessibleDescription = "Open alert settings."
+            };
+            settingsLink.LinkClicked += delegate
+            {
+                var handler = SettingsRequested;
+                if (handler != null) handler();
+            };
+            Controls.Add(settingsLink);
         }
 
         internal void ApplySettings(AppSettings value, bool isOffCall)
@@ -94,6 +117,10 @@ namespace DadsOnCall
             endButton.FlatAppearance.BorderColor = Darken(BackColor, 0.70);
             endButton.FlatAppearance.MouseOverBackColor = Darken(BackColor, 0.74);
             endButton.FlatAppearance.MouseDownBackColor = Darken(BackColor, 0.64);
+            settingsLink.LinkColor = ForeColor;
+            settingsLink.ActiveLinkColor = ForeColor;
+            settingsLink.VisitedLinkColor = ForeColor;
+            settingsLink.BackColor = BackColor;
             LayoutContent();
         }
 
@@ -164,6 +191,8 @@ namespace DadsOnCall
                 int gap = Math.Max(1, (int)(4 * unit));
                 int buttonWidth = Math.Max(1, (int)(40 * unit));
                 int buttonHeight = Math.Max(1, (int)(24 * unit));
+                int endWidth = Math.Max(1, (int)(80 * unit));
+                int endHeight = Math.Max(1, (int)(48 * unit));
                 int labelWidth = Math.Max(1, (int)(58 * unit));
                 int rowWidth = labelWidth + 5 * (buttonWidth + gap);
                 int rowTop = Height - padding - buttonHeight;
@@ -172,8 +201,8 @@ namespace DadsOnCall
                     addButtons[i].Bounds = new Rectangle(addLabelBounds.Right + gap + i * (buttonWidth + gap), rowTop, buttonWidth, buttonHeight);
                 int countdownHeight = Math.Max(1, countdownFont.Height + padding);
                 countdownBounds = new Rectangle(padding, rowTop - gap - countdownHeight, Width - 2 * padding, countdownHeight);
-                int endTop = countdownBounds.Top - gap - buttonHeight;
-                endButtonBounds = new Rectangle((Width - buttonWidth) / 2, endTop, buttonWidth, buttonHeight);
+                int endTop = Math.Max(padding, Height / 2 - endHeight / 2);
+                endButtonBounds = new Rectangle((Width - endWidth) / 2, endTop, endWidth, endHeight);
                 endButton.Bounds = endButtonBounds;
                 messageBounds = new Rectangle(padding, padding, Width - 2 * padding,
                     Math.Max(1, (endButton.Visible ? endButtonBounds.Top : countdownBounds.Top) - 2 * padding));
@@ -182,13 +211,16 @@ namespace DadsOnCall
             {
                 float unit = dpi;
                 int padding = Math.Max(2, (int)(6 * unit));
-                int buttonWidth = Math.Max(1, (int)(40 * unit));
-                int buttonHeight = Math.Max(1, (int)(24 * unit));
-                endButtonBounds = new Rectangle((Width - buttonWidth) / 2, Height - padding - buttonHeight, buttonWidth, buttonHeight);
+                int endWidth = Math.Max(1, (int)(80 * unit));
+                int endHeight = Math.Max(1, (int)(48 * unit));
+                int endTop = Math.Max(padding, Height / 2 - endHeight / 2);
+                endButtonBounds = new Rectangle((Width - endWidth) / 2, endTop, endWidth, endHeight);
                 endButton.Bounds = endButtonBounds;
                 messageBounds = new Rectangle(padding, padding, Width - 2 * padding,
                     Math.Max(1, endButtonBounds.Top - 2 * padding));
             }
+            int linkHeight = Math.Max(1, buttonFont.Height + 2);
+            settingsLink.Bounds = new Rectangle(12, Height - 8 - linkHeight, 70, linkHeight);
             Invalidate();
         }
 

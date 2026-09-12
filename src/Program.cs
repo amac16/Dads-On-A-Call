@@ -9,7 +9,7 @@ namespace DadsOnCall
 {
     internal static class AppInfo
     {
-        internal const string Version = "1.0.3";
+        internal const string Version = "1.0.4";
     }
 
     internal static class Program
@@ -65,6 +65,7 @@ namespace DadsOnCall
             indicator = new IndicatorForm(settings);
             indicator.AddTimeRequested += AddMinutes;
             indicator.EndRequested += EndIndicator;
+            indicator.SettingsRequested += ShowSettings;
             idleIcon = CreateIcon(Color.FromArgb(76, 89, 108));
             offIcon = CreateIcon(Color.FromArgb(24, 122, 69));
             onIcon = CreateIcon(Color.FromArgb(180, 35, 53));
