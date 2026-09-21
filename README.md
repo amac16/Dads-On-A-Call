@@ -1,28 +1,28 @@
 # Dad's On A Call
 
-A small native Windows tray app that displays customizable On Call and Off Call messages at a chosen position on your primary screen. No network connection, account, or calendar access is needed.
+A small native Windows tray app that displays customizable On Call, Off Call, and Headphones On messages at a chosen position on your primary screen. No network connection, account, or calendar access is needed.
 
 ## Run
 
 Double-click **Start Dad's On A Call.cmd**. It builds the app on the first run using the .NET Framework compiler included with Windows. You can also run **dist\DadsOnACall.exe** directly once built, or create a Windows shortcut to it.
 
-- The app starts with both indicators **hidden**.
+- The app starts with all indicators **hidden**.
 - **Left-click** the **D** tray icon to toggle **On Call**. If Off Call is showing, this replaces it with On Call.
-- **Right-click** for **Start/Stop On Call Indicator**, **Start/Stop Off Call Indicator**, **Settings**, or **Exit**. The Off Call action is directly below On Call.
-- On Call defaults to **Dad's On A Call** with a red background. Off Call defaults to **Dad's Off His Call** with a green background. Both messages are editable in Settings. Only one sign is shown at a time; starting one replaces the other. Stopping a sign hides it without starting the other.
-- The tray icon is red for On Call, green for Off Call, and slate gray when both signs are hidden.
+- **Right-click** for **Start/Stop On Call Indicator**, **Start/Stop Off Call Indicator**, **Start/Stop Headphones On Indicator**, **Settings**, or **Exit**.
+- On Call defaults to **Dad's On A Call** with a red background, Off Call defaults to **Dad's Off His Call** with a green background, and Headphones On defaults to **Dad's Listening to Music** with a blue background (`#0080C0`). All messages are editable in Settings. Only one sign is shown at a time; starting one replaces the other. Stopping a sign hides it without starting the other.
+- The tray icon is red for On Call, green for Off Call, blue for Headphones On, and slate gray when signs are hidden.
 - If the icon is hidden, open the taskbar's hidden-icons menu. You can drag it into the visible tray area.
 - Closing Settings leaves the tray app running. Exit from the tray menu to quit.
 
 ## Settings
 
-Under **Signs of Dad.**, the shared width and height controls (screen pixels) apply to both signs. The **On Call** and **Off Call** tabs each have an editable message, independent background color, font family, font size (points), font color, timer controls, and an appearance preview. Messages support up to 200 characters; leaving one blank restores that sign's default message. Edits update the preview as you type. **Save settings** persists both tabs and updates an active indicator immediately; **Cancel** discards edits in both tabs. On small displays, scroll the settings window to reach all controls.
+Under **Signs of Dad.**, the shared width and height controls (screen pixels) apply to all signs. The **On Call**, **Off Call**, and **Headphones On** tabs each have an editable message, independent background color, font family, font size (points), font color, timer controls, and an appearance preview. Messages support up to 200 characters; leaving one blank restores that sign's default message. Edits update the preview as you type. **Save settings** persists all tabs and updates an active indicator immediately; **Cancel** discards edits in all tabs. On small displays, scroll the settings window to reach all controls.
 
 ### Screen Position
 
 Click a section of the small **Screen position** monitor to choose one of nine presets: top left, top center, top right, center left, center, center right, bottom left, bottom center, or bottom right. The selected section is highlighted and its name appears below the monitor.
 
-Position is shared by both messages and defaults to **top right**. Clicking moves a visible sign **immediately**, without Save, and preserves its countdown and any quick-added time. If both signs are hidden, choosing a position does not turn them on; the next sign you start uses that position. Switching modes while Settings is open also uses the live selection.
+Position is shared by all messages and defaults to **top right**. Clicking moves a visible sign **immediately**, without Save, and preserves its countdown and any quick-added time. If all signs are hidden, choosing a position does not turn them on; the next sign you start uses that position. Switching modes while Settings is open also uses the live selection.
 
 **Save settings** remembers the position for future runs. **Cancel**, Escape, or closing Settings with X restores the previously saved position. Placement uses the primary display's working area so the taskbar is avoided.
 

@@ -5,12 +5,13 @@ using System.Windows.Forms;
 
 namespace DadsOnCall
 {
-    internal enum IndicatorMode { Hidden, OnCall, OffCall }
+    internal enum IndicatorMode { Hidden, OnCall, OffCall, HeadphonesOn }
 
     internal sealed class IndicatorForm : Form
     {
         public const string Message = "Dad's On A Call";
         public const string OffMessage = "Dad's Off His Call";
+        public const string HeadphonesMessage = "Dad's Listening to Music";
         private AppSettings settings;
         private readonly IndicatorContent content;
         private readonly Timer positionTimer;
@@ -106,11 +107,12 @@ namespace DadsOnCall
             settings.Normalize();
             this.mode = mode;
             bool offCall = mode == IndicatorMode.OffCall;
-            Text = offCall ? settings.OffMessage : settings.OnMessage;
+            bool headphonesOn = mode == IndicatorMode.HeadphonesOn;
+            Text = offCall ? settings.OffMessage : headphonesOn ? settings.HeadphonesMessage : settings.OnMessage;
             AccessibleName = Text;
-            BackColor = ColorTranslator.FromHtml(offCall ? settings.OffBackgroundColor : settings.BackgroundColor);
-            ForeColor = ColorTranslator.FromHtml(offCall ? settings.OffFontColor : settings.FontColor);
-            content.ApplySettings(settings, offCall);
+            BackColor = ColorTranslator.FromHtml(offCall ? settings.OffBackgroundColor : headphonesOn ? settings.HeadphonesBackgroundColor : settings.BackgroundColor);
+            ForeColor = ColorTranslator.FromHtml(offCall ? settings.OffFontColor : headphonesOn ? settings.HeadphonesFontColor : settings.FontColor);
+            content.ApplySettings(settings, mode);
             UpdateBlinkTimer();
             Reposition();
             Invalidate();

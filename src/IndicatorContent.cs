@@ -12,7 +12,7 @@ namespace DadsOnCall
         private readonly Button endButton;
         private readonly LinkLabel settingsLink;
         private AppSettings settings;
-        private bool offCall;
+        private IndicatorMode mode;
         private bool timed;
         private Font messageFont;
         private Font countdownFont;
@@ -96,14 +96,14 @@ namespace DadsOnCall
             Controls.Add(settingsLink);
         }
 
-        internal void ApplySettings(AppSettings value, bool isOffCall)
+        internal void ApplySettings(AppSettings value, IndicatorMode indicatorMode)
         {
             settings = value.Copy();
-            offCall = isOffCall;
-            Text = offCall ? settings.OffMessage : settings.OnMessage;
+            mode = indicatorMode;
+            Text = mode == IndicatorMode.OffCall ? settings.OffMessage : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesMessage : settings.OnMessage;
             AccessibleName = Text;
-            BackColor = ColorTranslator.FromHtml(offCall ? settings.OffBackgroundColor : settings.BackgroundColor);
-            ForeColor = ColorTranslator.FromHtml(offCall ? settings.OffFontColor : settings.FontColor);
+            BackColor = ColorTranslator.FromHtml(mode == IndicatorMode.OffCall ? settings.OffBackgroundColor : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesBackgroundColor : settings.BackgroundColor);
+            ForeColor = ColorTranslator.FromHtml(mode == IndicatorMode.OffCall ? settings.OffFontColor : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesFontColor : settings.FontColor);
             foreach (var button in addButtons)
             {
                 button.BackColor = Darken(BackColor, 0.84);
@@ -169,7 +169,7 @@ namespace DadsOnCall
             var oldMessage = messageFont;
             var oldCountdown = countdownFont;
             var oldButton = buttonFont;
-            using (var configured = settings.CreateFont(offCall))
+            using (var configured = settings.CreateFont(mode))
             {
                 messageFont = new Font(configured.FontFamily, Math.Max(1, configured.Size * scale), FontStyle.Regular);
                 float countdownSize = Math.Max(1, Math.Min(14, configured.Size * 0.6f) * scale);

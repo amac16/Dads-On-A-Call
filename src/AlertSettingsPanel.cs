@@ -6,7 +6,7 @@ namespace DadsOnCall
 {
     internal sealed class AlertSettingsPanel : UserControl
     {
-        private readonly bool offCall;
+        private readonly IndicatorMode mode;
         private readonly Func<Size> sharedSize;
         private readonly ComboBox fontInput;
         private readonly TextBox messageInput;
@@ -22,14 +22,14 @@ namespace DadsOnCall
         private readonly IndicatorContent previewContent = new IndicatorContent();
         internal event Action SettingsChanged;
 
-        public AlertSettingsPanel(bool isOffCall, AppSettings settings, string[] fontNames, Func<Size> getSharedSize)
+        public AlertSettingsPanel(IndicatorMode indicatorMode, AppSettings settings, string[] fontNames, Func<Size> getSharedSize)
         {
             SuspendLayout();
-            offCall = isOffCall;
+            mode = indicatorMode;
             sharedSize = getSharedSize;
             Dock = DockStyle.Fill;
             AutoScaleMode = AutoScaleMode.Inherit;
-            string prefix = offCall ? "Off Call " : "On Call ";
+            string prefix = mode == IndicatorMode.OffCall ? "Off Call " : mode == IndicatorMode.HeadphonesOn ? "Headphones On " : "On Call ";
             var layout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill, Padding = new Padding(12), ColumnCount = 2, RowCount = 11
@@ -39,30 +39,30 @@ namespace DadsOnCall
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             messageInput = new TextBox
             {
-                Text = offCall ? settings.OffMessage : settings.OnMessage, MaxLength = 200, Dock = DockStyle.Top
+                Text = mode == IndicatorMode.OffCall ? settings.OffMessage : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesMessage : settings.OnMessage, MaxLength = 200, Dock = DockStyle.Top
             };
             AddRow(layout, "Message", messageInput, prefix, 0);
             fontInput = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Top, Sorted = true };
             fontInput.Items.AddRange(fontNames);
-            string family = offCall ? settings.OffFontFamily : settings.FontFamily;
+            string family = mode == IndicatorMode.OffCall ? settings.OffFontFamily : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesFontFamily : settings.FontFamily;
             if (!fontInput.Items.Contains(family)) fontInput.Items.Add(family);
             fontInput.SelectedItem = family;
             AddRow(layout, "Font type", fontInput, prefix, 1);
             fontSizeInput = new NumericUpDown
             {
                 Minimum = 8, Maximum = 144, DecimalPlaces = 1, Dock = DockStyle.Top,
-                Value = (decimal)(offCall ? settings.OffFontSize : settings.FontSize)
+                Value = (decimal)(mode == IndicatorMode.OffCall ? settings.OffFontSize : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesFontSize : settings.FontSize)
             };
             AddRow(layout, "Font size (pt)", fontSizeInput, prefix, 2);
-            backgroundInput = ColorButton(offCall ? settings.OffBackgroundColor : settings.BackgroundColor);
-            foregroundInput = ColorButton(offCall ? settings.OffFontColor : settings.FontColor);
+            backgroundInput = ColorButton(mode == IndicatorMode.OffCall ? settings.OffBackgroundColor : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesBackgroundColor : settings.BackgroundColor);
+            foregroundInput = ColorButton(mode == IndicatorMode.OffCall ? settings.OffFontColor : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesFontColor : settings.FontColor);
             AddRow(layout, "Background color", backgroundInput, prefix, 3);
             AddRow(layout, "Font color", foregroundInput, prefix, 4);
 
             timerEnabled = new CheckBox
             {
                 Text = "Automatically hide this indicator after:", AccessibleName = prefix + "timer enabled",
-                AutoSize = true, Checked = offCall ? settings.OffTimerEnabled : settings.OnTimerEnabled,
+                AutoSize = true, Checked = mode == IndicatorMode.OffCall ? settings.OffTimerEnabled : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesTimerEnabled : settings.OnTimerEnabled,
                 Margin = new Padding(0, 5, 0, 0)
             };
             layout.Controls.Add(timerEnabled, 0, 5);
@@ -70,10 +70,10 @@ namespace DadsOnCall
             layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
             hoursInput = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 70, AccessibleName = prefix + "timer hours" };
             for (int hour = 0; hour <= 24; hour++) hoursInput.Items.Add(hour);
-            hoursInput.SelectedItem = offCall ? settings.OffTimerHours : settings.OnTimerHours;
+            hoursInput.SelectedItem = mode == IndicatorMode.OffCall ? settings.OffTimerHours : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesTimerHours : settings.OnTimerHours;
             minutesInput = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 70, AccessibleName = prefix + "timer minutes" };
             foreach (int minute in AppSettings.MinuteChoices) minutesInput.Items.Add(minute);
-            minutesInput.SelectedItem = offCall ? settings.OffTimerMinutes : settings.OnTimerMinutes;
+            minutesInput.SelectedItem = mode == IndicatorMode.OffCall ? settings.OffTimerMinutes : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesTimerMinutes : settings.OnTimerMinutes;
             var duration = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Margin = new Padding(0) };
             duration.SuspendLayout();
             duration.Controls.Add(hoursInput);
@@ -93,7 +93,7 @@ namespace DadsOnCall
             blinkEnabled = new CheckBox
             {
                 Text = "Blink this indicator", AccessibleName = prefix + "blink enabled",
-                AutoSize = true, Checked = offCall ? settings.OffBlinkEnabled : settings.OnBlinkEnabled,
+                AutoSize = true, Checked = mode == IndicatorMode.OffCall ? settings.OffBlinkEnabled : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesBlinkEnabled : settings.OnBlinkEnabled,
                 Margin = new Padding(0, 5, 0, 0)
             };
             layout.Controls.Add(blinkEnabled, 0, 7);
@@ -105,7 +105,7 @@ namespace DadsOnCall
                 AccessibleName = prefix + "blink rate"
             };
             blinkRate.Items.AddRange(AppSettings.BlinkRateChoices);
-            blinkRate.SelectedItem = offCall ? settings.OffBlinkRate : settings.OnBlinkRate;
+            blinkRate.SelectedItem = mode == IndicatorMode.OffCall ? settings.OffBlinkRate : mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesBlinkRate : settings.OnBlinkRate;
             AddRow(layout, "Blink rate", blinkRate, prefix, 8);
             blinkRate.Enabled = blinkEnabled.Checked;
             blinkEnabled.CheckedChanged += delegate
@@ -177,7 +177,7 @@ namespace DadsOnCall
 
         public void WriteSettings(AppSettings settings)
         {
-            if (offCall)
+            if (mode == IndicatorMode.OffCall)
             {
                 settings.OffMessage = AppSettings.NormalizeMessage(messageInput.Text, IndicatorForm.OffMessage);
                 settings.OffFontFamily = (string)fontInput.SelectedItem;
@@ -189,6 +189,19 @@ namespace DadsOnCall
                 settings.OffTimerMinutes = (int)minutesInput.SelectedItem;
                 settings.OffBlinkEnabled = blinkEnabled.Checked;
                 settings.OffBlinkRate = (string)blinkRate.SelectedItem;
+            }
+            else if (mode == IndicatorMode.HeadphonesOn)
+            {
+                settings.HeadphonesMessage = AppSettings.NormalizeMessage(messageInput.Text, IndicatorForm.HeadphonesMessage);
+                settings.HeadphonesFontFamily = (string)fontInput.SelectedItem;
+                settings.HeadphonesFontSize = (float)fontSizeInput.Value;
+                settings.HeadphonesBackgroundColor = backgroundInput.Text;
+                settings.HeadphonesFontColor = foregroundInput.Text;
+                settings.HeadphonesTimerEnabled = timerEnabled.Checked;
+                settings.HeadphonesTimerHours = (int)hoursInput.SelectedItem;
+                settings.HeadphonesTimerMinutes = (int)minutesInput.SelectedItem;
+                settings.HeadphonesBlinkEnabled = blinkEnabled.Checked;
+                settings.HeadphonesBlinkRate = (string)blinkRate.SelectedItem;
             }
             else
             {
@@ -209,8 +222,8 @@ namespace DadsOnCall
         {
             var settings = new AppSettings();
             WriteSettings(settings);
-            previewContent.ApplySettings(settings, offCall);
-            previewContent.UpdateRemaining(settings.AutoHideDuration(offCall ? IndicatorMode.OffCall : IndicatorMode.OnCall));
+            previewContent.ApplySettings(settings, mode);
+            previewContent.UpdateRemaining(settings.AutoHideDuration(mode));
             preview.Invalidate();
             var handler = SettingsChanged;
             if (handler != null) handler();

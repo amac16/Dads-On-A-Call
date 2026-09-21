@@ -28,16 +28,26 @@ namespace DadsOnCall
         public string OffFontColor { get; set; }
         public string OffFontFamily { get; set; }
         public float OffFontSize { get; set; }
+        public string HeadphonesMessage { get; set; }
+        public string HeadphonesBackgroundColor { get; set; }
+        public string HeadphonesFontColor { get; set; }
+        public string HeadphonesFontFamily { get; set; }
+        public float HeadphonesFontSize { get; set; }
         public bool OnTimerEnabled { get; set; }
         public int OnTimerHours { get; set; }
         public int OnTimerMinutes { get; set; }
         public bool OffTimerEnabled { get; set; }
         public int OffTimerHours { get; set; }
         public int OffTimerMinutes { get; set; }
+        public bool HeadphonesTimerEnabled { get; set; }
+        public int HeadphonesTimerHours { get; set; }
+        public int HeadphonesTimerMinutes { get; set; }
         public bool OnBlinkEnabled { get; set; }
         public string OnBlinkRate { get; set; }
         public bool OffBlinkEnabled { get; set; }
         public string OffBlinkRate { get; set; }
+        public bool HeadphonesBlinkEnabled { get; set; }
+        public string HeadphonesBlinkRate { get; set; }
 
         internal static readonly int[] MinuteChoices = { 0, 1, 2, 3, 4, 5, 10, 15, 30, 45 };
         internal static readonly string[] BlinkRateChoices =
@@ -58,10 +68,17 @@ namespace DadsOnCall
             OffFontColor = "#FFFFFF";
             OffFontFamily = "Segoe UI";
             OffFontSize = 24;
+            HeadphonesMessage = IndicatorForm.HeadphonesMessage;
+            HeadphonesBackgroundColor = "#0080C0";
+            HeadphonesFontColor = "#FFFFFF";
+            HeadphonesFontFamily = "Segoe UI";
+            HeadphonesFontSize = 24;
             OnTimerMinutes = 5;
             OffTimerMinutes = 5;
+            HeadphonesTimerMinutes = 5;
             OnBlinkRate = BlinkRateChoices[0];
             OffBlinkRate = BlinkRateChoices[0];
+            HeadphonesBlinkRate = BlinkRateChoices[0];
         }
 
         public AppSettings Copy()
@@ -76,6 +93,7 @@ namespace DadsOnCall
             if (!Enum.IsDefined(typeof(ScreenPosition), Position)) Position = ScreenPosition.TopRight;
             OnMessage = NormalizeMessage(OnMessage, IndicatorForm.Message);
             OffMessage = NormalizeMessage(OffMessage, IndicatorForm.OffMessage);
+            HeadphonesMessage = NormalizeMessage(HeadphonesMessage, IndicatorForm.HeadphonesMessage);
             FontSize = float.IsNaN(FontSize) || float.IsInfinity(FontSize)
                 ? 24 : Math.Max(8, Math.Min(144, FontSize));
             BackgroundColor = NormalizeColor(BackgroundColor, "#B42335");
@@ -86,14 +104,23 @@ namespace DadsOnCall
             OffBackgroundColor = NormalizeColor(OffBackgroundColor, "#187A45");
             OffFontColor = NormalizeColor(OffFontColor, "#FFFFFF");
             if (string.IsNullOrWhiteSpace(OffFontFamily)) OffFontFamily = "Segoe UI";
+            HeadphonesFontSize = float.IsNaN(HeadphonesFontSize) || float.IsInfinity(HeadphonesFontSize)
+                ? 24 : Math.Max(8, Math.Min(144, HeadphonesFontSize));
+            HeadphonesBackgroundColor = NormalizeColor(HeadphonesBackgroundColor, "#0080C0");
+            HeadphonesFontColor = NormalizeColor(HeadphonesFontColor, "#FFFFFF");
+            if (string.IsNullOrWhiteSpace(HeadphonesFontFamily)) HeadphonesFontFamily = "Segoe UI";
             OnTimerHours = Math.Max(0, Math.Min(24, OnTimerHours));
             OffTimerHours = Math.Max(0, Math.Min(24, OffTimerHours));
+            HeadphonesTimerHours = Math.Max(0, Math.Min(24, HeadphonesTimerHours));
             if (Array.IndexOf(MinuteChoices, OnTimerMinutes) < 0 ||
                 (OnTimerEnabled && OnTimerHours == 0 && OnTimerMinutes == 0)) OnTimerMinutes = 5;
             if (Array.IndexOf(MinuteChoices, OffTimerMinutes) < 0 ||
                 (OffTimerEnabled && OffTimerHours == 0 && OffTimerMinutes == 0)) OffTimerMinutes = 5;
+            if (Array.IndexOf(MinuteChoices, HeadphonesTimerMinutes) < 0 ||
+                (HeadphonesTimerEnabled && HeadphonesTimerHours == 0 && HeadphonesTimerMinutes == 0)) HeadphonesTimerMinutes = 5;
             OnBlinkRate = NormalizeBlinkRate(OnBlinkRate);
             OffBlinkRate = NormalizeBlinkRate(OffBlinkRate);
+            HeadphonesBlinkRate = NormalizeBlinkRate(HeadphonesBlinkRate);
         }
 
         private static string NormalizeColor(string value, string fallback)
@@ -119,10 +146,10 @@ namespace DadsOnCall
             return value.Substring(0, length);
         }
 
-        public Font CreateFont(bool offCall = false)
+        internal Font CreateFont(IndicatorMode mode = IndicatorMode.OnCall)
         {
-            string family = offCall ? OffFontFamily : FontFamily;
-            float size = offCall ? OffFontSize : FontSize;
+            string family = mode == IndicatorMode.OffCall ? OffFontFamily : mode == IndicatorMode.HeadphonesOn ? HeadphonesFontFamily : FontFamily;
+            float size = mode == IndicatorMode.OffCall ? OffFontSize : mode == IndicatorMode.HeadphonesOn ? HeadphonesFontSize : FontSize;
             try { return new Font(family, size, FontStyle.Regular, GraphicsUnit.Point); }
             catch (ArgumentException) { return new Font("Segoe UI", size, FontStyle.Regular, GraphicsUnit.Point); }
         }
@@ -133,12 +160,14 @@ namespace DadsOnCall
                 return TimeSpan.FromHours(OnTimerHours) + TimeSpan.FromMinutes(OnTimerMinutes);
             if (mode == IndicatorMode.OffCall && OffTimerEnabled)
                 return TimeSpan.FromHours(OffTimerHours) + TimeSpan.FromMinutes(OffTimerMinutes);
+            if (mode == IndicatorMode.HeadphonesOn && HeadphonesTimerEnabled)
+                return TimeSpan.FromHours(HeadphonesTimerHours) + TimeSpan.FromMinutes(HeadphonesTimerMinutes);
             return null;
         }
 
         internal int BlinkInterval(IndicatorMode mode)
         {
-            string rate = mode == IndicatorMode.OffCall ? OffBlinkRate : OnBlinkRate;
+            string rate = mode == IndicatorMode.OffCall ? OffBlinkRate : mode == IndicatorMode.HeadphonesOn ? HeadphonesBlinkRate : OnBlinkRate;
             switch (rate)
             {
                 case "Very Slow": return 5000;
@@ -156,7 +185,7 @@ namespace DadsOnCall
 
         internal bool BlinkEnabled(IndicatorMode mode)
         {
-            return mode == IndicatorMode.OffCall ? OffBlinkEnabled : OnBlinkEnabled;
+            return mode == IndicatorMode.OffCall ? OffBlinkEnabled : mode == IndicatorMode.HeadphonesOn ? HeadphonesBlinkEnabled : OnBlinkEnabled;
         }
 
         private static string NormalizeBlinkRate(string value)
@@ -170,6 +199,8 @@ namespace DadsOnCall
                 throw new InvalidOperationException("Choose a duration greater than zero for the On Call timer.");
             if (OffTimerEnabled && OffTimerHours == 0 && OffTimerMinutes == 0)
                 throw new InvalidOperationException("Choose a duration greater than zero for the Off Call timer.");
+            if (HeadphonesTimerEnabled && HeadphonesTimerHours == 0 && HeadphonesTimerMinutes == 0)
+                throw new InvalidOperationException("Choose a duration greater than zero for the Headphones On timer.");
         }
     }
 

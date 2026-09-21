@@ -13,6 +13,7 @@ namespace DadsOnCall
         private readonly NumericUpDown heightInput;
         private readonly AlertSettingsPanel onPanel;
         private readonly AlertSettingsPanel offPanel;
+        private readonly AlertSettingsPanel headphonesPanel;
         private readonly CheckBox startupInput;
         private readonly Action<AppSettings, bool> save;
         private readonly PositionPicker positionPicker;
@@ -92,15 +93,19 @@ namespace DadsOnCall
                 }
             }
             Func<Size> sharedSize = delegate { return new Size((int)widthInput.Value, (int)heightInput.Value); };
-            onPanel = new AlertSettingsPanel(false, settings, fontNames.ToArray(), sharedSize);
-            offPanel = new AlertSettingsPanel(true, settings, fontNames.ToArray(), sharedSize);
+            onPanel = new AlertSettingsPanel(IndicatorMode.OnCall, settings, fontNames.ToArray(), sharedSize);
+            offPanel = new AlertSettingsPanel(IndicatorMode.OffCall, settings, fontNames.ToArray(), sharedSize);
+            headphonesPanel = new AlertSettingsPanel(IndicatorMode.HeadphonesOn, settings, fontNames.ToArray(), sharedSize);
             var tabs = new TabControl { Dock = DockStyle.Fill, AccessibleName = "Indicator settings", Margin = new Padding(0, 0, 0, 12) };
             var onTab = new TabPage("On Call") { BackColor = BackColor };
             var offTab = new TabPage("Off Call") { BackColor = BackColor };
+            var headphonesTab = new TabPage("Headphones On") { BackColor = BackColor };
             onTab.Controls.Add(onPanel);
             offTab.Controls.Add(offPanel);
+            headphonesTab.Controls.Add(headphonesPanel);
             tabs.TabPages.Add(onTab);
             tabs.TabPages.Add(offTab);
+            tabs.TabPages.Add(headphonesTab);
             layout.Controls.Add(tabs, 0, 3);
             layout.SetColumnSpan(tabs, 2);
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -132,6 +137,7 @@ namespace DadsOnCall
             };
             onPanel.SettingsChanged += PreviewSettings;
             offPanel.SettingsChanged += PreviewSettings;
+            headphonesPanel.SettingsChanged += PreviewSettings;
 
             startupInput = new CheckBox
             {
@@ -163,8 +169,8 @@ namespace DadsOnCall
             AcceptButton = saveButton;
             CancelButton = cancelButton;
 
-            widthInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); };
-            heightInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); };
+            widthInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); headphonesPanel.UpdatePreview(); };
+            heightInput.ValueChanged += delegate { onPanel.UpdatePreview(); offPanel.UpdatePreview(); headphonesPanel.UpdatePreview(); };
             var canvas = new Panel { Size = new Size(780, 746) };
             canvas.SuspendLayout();
             var versionLabel = new Label
@@ -204,6 +210,7 @@ namespace DadsOnCall
             };
             onPanel.WriteSettings(settings);
             offPanel.WriteSettings(settings);
+            headphonesPanel.WriteSettings(settings);
             try
             {
                 settings.ValidateTimers();
@@ -230,6 +237,7 @@ namespace DadsOnCall
             };
             onPanel.WriteSettings(settings);
             offPanel.WriteSettings(settings);
+            headphonesPanel.WriteSettings(settings);
             previewSettings(settings);
         }
 

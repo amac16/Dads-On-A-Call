@@ -9,7 +9,7 @@ namespace DadsOnCall
 {
     internal static class AppInfo
     {
-        internal const string Version = "1.0.5";
+        internal const string Version = "1.0.6";
     }
 
     internal static class Program
@@ -43,9 +43,11 @@ namespace DadsOnCall
         private readonly ContextMenuStrip menu;
         private readonly ToolStripMenuItem toggleItem;
         private readonly ToolStripMenuItem offToggleItem;
+        private readonly ToolStripMenuItem headphonesToggleItem;
         private readonly Icon idleIcon;
         private readonly Icon offIcon;
         private readonly Icon onIcon;
+        private readonly Icon headphonesIcon;
         private readonly StartupRegistration startup = new StartupRegistration(StartupRegistration.DefaultKeyPath);
         private readonly System.Windows.Forms.Timer autoHideTimer;
         private readonly Func<long> clock;
@@ -69,11 +71,14 @@ namespace DadsOnCall
             idleIcon = CreateIcon(Color.FromArgb(76, 89, 108));
             offIcon = CreateIcon(Color.FromArgb(24, 122, 69));
             onIcon = CreateIcon(Color.FromArgb(180, 35, 53));
+            headphonesIcon = CreateIcon(Color.Yellow);
             menu = new ContextMenuStrip();
             toggleItem = new ToolStripMenuItem("Start On Call Indicator", null, delegate { Toggle(IndicatorMode.OnCall); });
             offToggleItem = new ToolStripMenuItem("Start Off Call Indicator", null, delegate { Toggle(IndicatorMode.OffCall); });
+            headphonesToggleItem = new ToolStripMenuItem("Start Headphones On Indicator", null, delegate { Toggle(IndicatorMode.HeadphonesOn); });
             menu.Items.Add(toggleItem);
             menu.Items.Add(offToggleItem);
+            menu.Items.Add(headphonesToggleItem);
             menu.Items.Add("Settings...", null, delegate { ShowSettings(); });
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("Exit", null, delegate { ExitThread(); });
@@ -110,12 +115,14 @@ namespace DadsOnCall
                 indicator.Show();
             }
             RestartAutoHide();
-            tray.Icon = mode == IndicatorMode.OnCall ? onIcon : mode == IndicatorMode.OffCall ? offIcon : idleIcon;
+            tray.Icon = mode == IndicatorMode.OnCall ? onIcon : mode == IndicatorMode.OffCall ? offIcon : mode == IndicatorMode.HeadphonesOn ? headphonesIcon : idleIcon;
             UpdateTrayText();
             toggleItem.Text = (mode == IndicatorMode.OnCall ? "Stop" : "Start") + " On Call Indicator";
             toggleItem.Checked = mode == IndicatorMode.OnCall;
             offToggleItem.Text = (mode == IndicatorMode.OffCall ? "Stop" : "Start") + " Off Call Indicator";
             offToggleItem.Checked = mode == IndicatorMode.OffCall;
+            headphonesToggleItem.Text = (mode == IndicatorMode.HeadphonesOn ? "Stop" : "Start") + " Headphones On Indicator";
+            headphonesToggleItem.Checked = mode == IndicatorMode.HeadphonesOn;
         }
 
         private void RestartAutoHide()
@@ -171,7 +178,7 @@ namespace DadsOnCall
         private void UpdateTrayText()
         {
             string text = Mode == IndicatorMode.OnCall ? settings.OnMessage : Mode == IndicatorMode.OffCall
-                ? settings.OffMessage : "DadsOnACall - Indicators hidden";
+                ? settings.OffMessage : Mode == IndicatorMode.HeadphonesOn ? settings.HeadphonesMessage : "DadsOnACall - Indicators hidden";
             // NotifyIcon tooltips on .NET Framework are limited to 63 characters.
             tray.Text = text.Length > 63 ? AppSettings.TruncateText(text, 60) + "..." : text;
         }
@@ -267,6 +274,7 @@ namespace DadsOnCall
                 idleIcon.Dispose();
                 offIcon.Dispose();
                 onIcon.Dispose();
+                headphonesIcon.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -98,6 +98,10 @@ namespace DadsOnCall
             Check(settings.OffBackgroundColor == "#187A45" && settings.OffFontColor == "#FFFFFF" &&
                 !settings.OnTimerEnabled && !settings.OffTimerEnabled &&
                 !settings.OnBlinkEnabled && !settings.OffBlinkEnabled, "Off Call defaults green and timers and blinking default disabled");
+            Check(settings.HeadphonesMessage == IndicatorForm.HeadphonesMessage &&
+                settings.HeadphonesBackgroundColor == "#0080C0" && settings.HeadphonesFontColor == "#FFFFFF" &&
+                !settings.HeadphonesTimerEnabled && !settings.HeadphonesBlinkEnabled,
+                "Headphones On defaults to its message, blue background, and independent disabled features");
             settings.Width = 580;
             settings.Height = 180;
             settings.FontFamily = "Arial";
@@ -623,6 +627,9 @@ namespace DadsOnCall
                 indicator.ApplySettings(changed, IndicatorMode.OffCall);
                 Check(indicator.ForeColor == ColorTranslator.FromHtml("#EEDDBB") && indicator.BackColor == ColorTranslator.FromHtml("#125533"),
                     "Off Call applies its customized colors independently");
+                indicator.ApplySettings(new AppSettings(), IndicatorMode.HeadphonesOn);
+                Check(indicator.Text == IndicatorForm.HeadphonesMessage && indicator.BackColor.ToArgb() == ColorTranslator.FromHtml("#0080C0").ToArgb(),
+                    "Headphones On uses its default message and blue appearance");
             }
             bool saved = false;
             using (var form = new SettingsForm(new AppSettings(), false, delegate { saved = true; }))
@@ -639,7 +646,7 @@ namespace DadsOnCall
                 var saveButton = (Button)form.AcceptButton;
                 Check(saveButton.Parent.ClientRectangle.Contains(saveButton.Bounds), "Save button is fully visible at current DPI");
                 var tabs = Find<TabControl>(form, "Indicator settings");
-                foreach (string prefix in new[] { "On Call ", "Off Call " })
+                foreach (string prefix in new[] { "On Call ", "Off Call ", "Headphones On " })
                 {
                     tabs.SelectedIndex = prefix == "On Call " ? 0 : 1;
                     Application.DoEvents();
